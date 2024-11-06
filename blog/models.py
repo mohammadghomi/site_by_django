@@ -1,0 +1,50 @@
+from django.db import models
+from django.core.validators import MinLengthValidator
+from django.contrib.auth.models import User
+# Create your models here.
+class Tag(models.Model):
+    caption = models.CharField(max_length=20)
+    
+    def __str__(self):
+        return self.caption
+
+
+class Author(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+
+
+class Post(models.Model):
+    title = models.CharField(max_length=100)
+    excerpt = models.CharField(max_length=150)
+    image = models.ImageField(upload_to="posts", null=True)
+    date = models.DateField(auto_now=True)
+    slug = models.SlugField(unique=True, db_index=True)
+    content = models.TextField(validators=[MinLengthValidator(10)])
+    author = models.ForeignKey(Author,
+             on_delete=models.SET_NULL, related_name="posts", null=True)
+    tag = models.ManyToManyField(Tag, )
+
+    def __str__(self):
+        return f"{self.title}"
+   
+
+class Comment(models.Model):
+    user_name = models.CharField(max_length=100)
+    user_email = models.EmailField()
+    text = models.TextField(max_length=400)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(default="profilepic.jpg", upload_to="profiles") 
+    location = models.CharField(max_length=100)   
+    
+    def __str__(self):
+        return self.user.username
